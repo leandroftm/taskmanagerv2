@@ -1,4 +1,4 @@
-package com.leandroftm.taskmanager.taskmanagerv2.enums;
+package com.leandroftm.taskmanager.taskmanagerv2.domain.enums;
 
 public enum TaskStatus {
     TODO,
