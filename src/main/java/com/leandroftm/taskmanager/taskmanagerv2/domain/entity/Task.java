@@ -1,33 +1,45 @@
-package com.leandroftm.taskmanager.taskmanagerv2.entity;
+package com.leandroftm.taskmanager.taskmanagerv2.domain.entity;
 
-import com.leandroftm.taskmanager.taskmanagerv2.enums.TaskPriority;
-import com.leandroftm.taskmanager.taskmanagerv2.enums.TaskStatus;
+import com.leandroftm.taskmanager.taskmanagerv2.domain.enums.TaskPriority;
+import com.leandroftm.taskmanager.taskmanagerv2.domain.enums.TaskStatus;
 import jakarta.persistence.*;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "tasks")
+@NoArgsConstructor
 @Getter
 @Setter
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
-@ToString(onlyExplicitlyIncluded = true)
 public class Task {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @EqualsAndHashCode.Include
     private Long id;
-
-    @Column(name = "title", nullable = false)
+    @Column(name = "title", nullable = false, length = 50)
     private String title;
+    @Column(name = "description", nullable = false, length = 255)
     private String description;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "task_status", nullable = false, length = 25)
     private TaskStatus taskStatus;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "task_priority", nullable = false, length = 25)
     private TaskPriority taskPriority;
+    @Column(name = "due_date",  nullable = false)
     private LocalDateTime dueDate;
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    @PrePersist
+    public void prePersist() {
+        this.createdAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    public void preUpdate(TaskStatus taskStatus, TaskPriority taskPriority, LocalDateTime dueDate) {
+        this.taskStatus = taskStatus;
+        this.taskPriority = taskPriority;
+        this.dueDate = dueDate;
+    }
 }
