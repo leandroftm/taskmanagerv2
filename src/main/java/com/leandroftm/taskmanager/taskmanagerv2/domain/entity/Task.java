@@ -30,8 +30,20 @@ public class Task {
     private LocalDateTime createdAt;
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-    @Column(name = "due_date",  nullable = false)
+    @Column(name = "due_date", nullable = false)
     private LocalDateTime dueDate;
+
+    public Task(String title,
+                String description,
+                TaskStatus taskStatus,
+                TaskPriority taskPriority,
+                LocalDateTime dueDate) {
+        this.title = title;
+        this.description = description;
+        this.taskStatus = taskStatus;
+        this.taskPriority = taskPriority;
+        this.dueDate = dueDate;
+    }
 
     @PrePersist
     public void prePersist() {
@@ -44,7 +56,10 @@ public class Task {
         this.updatedAt = LocalDateTime.now();
     }
 
-    public void update(TaskStatus taskStatus, TaskPriority taskPriority, LocalDateTime dueDate) {
+    public void update(String description, TaskStatus taskStatus, TaskPriority taskPriority, LocalDateTime dueDate) {
+        if (description != null && !description.isEmpty()) {
+            this.description = description;
+        }
         this.taskStatus = taskStatus;
         this.taskPriority = taskPriority;
         this.dueDate = dueDate;
