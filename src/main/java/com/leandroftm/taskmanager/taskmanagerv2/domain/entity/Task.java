@@ -18,7 +18,7 @@ public class Task {
     private Long id;
     @Column(name = "title", nullable = false, length = 50)
     private String title;
-    @Column(name = "description", nullable = false, length = 255)
+    @Column(name = "description", length = 255)
     private String description;
     @Enumerated(EnumType.STRING)
     @Column(name = "task_status", nullable = false, length = 25)
@@ -26,20 +26,28 @@ public class Task {
     @Enumerated(EnumType.STRING)
     @Column(name = "task_priority", nullable = false, length = 25)
     private TaskPriority taskPriority;
-    @Column(name = "due_date",  nullable = false)
-    private LocalDateTime dueDate;
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+    @Column(name = "due_date",  nullable = false)
+    private LocalDateTime dueDate;
 
     @PrePersist
     public void prePersist() {
         this.createdAt = LocalDateTime.now();
+        this.updatedAt = createdAt;
     }
 
     @PreUpdate
-    public void preUpdate(TaskStatus taskStatus, TaskPriority taskPriority, LocalDateTime dueDate) {
+    public void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    public void update(TaskStatus taskStatus, TaskPriority taskPriority, LocalDateTime dueDate) {
         this.taskStatus = taskStatus;
         this.taskPriority = taskPriority;
         this.dueDate = dueDate;
     }
+
 }
