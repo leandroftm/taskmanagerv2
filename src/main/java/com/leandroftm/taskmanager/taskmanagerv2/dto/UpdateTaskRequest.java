@@ -8,16 +8,16 @@ import jakarta.validation.constraints.Size;
 
 import java.time.LocalDateTime;
 
-public record TaskRequest(
-        @NotNull
+public record CreateTaskRequest(
+        @NotBlank
         @Size(min = 1, max = 50)
         String title,
         @Size(max = 255)
         String description,
-        @NotBlank
+        @NotNull
         @Size(min = 1, max = 25)
         TaskPriority taskPriority,
-        @NotBlank
+        @NotNull
         @Size(min = 1, max = 25)
         TaskStatus taskStatus,
         @NotNull
