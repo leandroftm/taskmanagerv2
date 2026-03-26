@@ -5,6 +5,10 @@ import com.leandroftm.taskmanager.taskmanagerv2.domain.enums.TaskStatus;
 import com.leandroftm.taskmanager.taskmanagerv2.dto.CreateTaskRequest;
 import com.leandroftm.taskmanager.taskmanagerv2.dto.TaskResponse;
 import com.leandroftm.taskmanager.taskmanagerv2.dto.UpdateTaskRequest;
+import com.leandroftm.taskmanager.taskmanagerv2.exception.domain.task.TaskDueDateBeforeNowException;
+import com.leandroftm.taskmanager.taskmanagerv2.exception.domain.task.TaskDuplicateTitleException;
+import com.leandroftm.taskmanager.taskmanagerv2.exception.domain.task.TaskAlreadyDoneException;
+import com.leandroftm.taskmanager.taskmanagerv2.exception.domain.task.TaskNotFoundException;
 import com.leandroftm.taskmanager.taskmanagerv2.repository.TaskRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -24,10 +28,10 @@ public class TaskService {
 
     public TaskResponse createTask(CreateTaskRequest taskRequest) {
         if (taskRepository.existsByTitleIgnoreCase(taskRequest.title())) {
-            throw new RuntimeException("Duplicated title");
+            throw new TaskDuplicateTitleException(taskRequest.title());
         }
         if (taskRequest.dueDate().isBefore(LocalDateTime.now())) {
-            throw new RuntimeException("Due date is before now");
+            throw new TaskDueDateBeforeNowException(taskRequest.dueDate());
         }
         Task task = taskRepository.save(toEntity(taskRequest));
         return new TaskResponse(task);
@@ -41,34 +45,39 @@ public class TaskService {
     @Transactional(readOnly = true)
     public TaskResponse getById(Long id) {
         return taskRepository.findById(id).map(TaskResponse::new)
-                .orElseThrow(() -> new RuntimeException("Task not found"));
+                .orElseThrow(() -> new TaskNotFoundException(id));
     }
 
     public void updateTask(Long id, UpdateTaskRequest taskRequest) {
         Task task = taskRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Task not found"));
+                .orElseThrow(() -> new TaskNotFoundException(id));
 
         if (task.getTaskStatus() == TaskStatus.DONE) {
-            throw new RuntimeException("Task is already done");
+            throw new TaskAlreadyDoneException("Task is already done");
         }
 
         if (taskRequest.dueDate().isBefore(LocalDateTime.now())) {
-            throw new RuntimeException("Due date is before now");
+            throw new TaskDueDateBeforeNowException(taskRequest.dueDate());
         }
 
         if (!Objects.equals(task.getTitle(), taskRequest.title())) {
             if (taskRepository.existsByTitleIgnoreCaseAndIdNot(taskRequest.title(), id)) {
-                throw new RuntimeException("Duplicated title");
+                throw new TaskDuplicateTitleException(task.getTitle());
             }
             task.setTitle(taskRequest.title());
         }
 
-        task.update(taskRequest.description(), taskRequest.taskStatus(), taskRequest.taskPriority(), taskRequest.dueDate());
+        task.update(
+                taskRequest.description(),
+                taskRequest.taskStatus(),
+                taskRequest.taskPriority(),
+                taskRequest.dueDate()
+        );
     }
 
     public void deleteTask(Long id) {
         Task task = taskRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Task not found"));
+                .orElseThrow(() -> new TaskNotFoundException(id));
 
         taskRepository.delete(task);
     }
