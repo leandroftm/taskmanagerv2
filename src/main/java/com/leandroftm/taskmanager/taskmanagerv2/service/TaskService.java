@@ -53,7 +53,7 @@ public class TaskService {
                 .orElseThrow(() -> new TaskNotFoundException(id));
 
         if (task.getTaskStatus() == TaskStatus.DONE) {
-            throw new TaskAlreadyDoneException("Task is already done");
+            throw new TaskAlreadyDoneException(id);
         }
 
         if (taskRequest.dueDate().isBefore(LocalDateTime.now())) {

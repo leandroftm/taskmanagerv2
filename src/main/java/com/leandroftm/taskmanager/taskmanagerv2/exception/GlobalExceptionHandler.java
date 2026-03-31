@@ -26,16 +26,16 @@ public class GlobalExceptionHandler {
         return buildError(HttpStatus.BAD_REQUEST, message, request);
     }
 
-    @ExceptionHandler(DomainException.class)
-    public ResponseEntity<ApiErrorDTO> handleDomain(DomainException ex,
-                                                    HttpServletRequest request) {
-        return buildError(HttpStatus.BAD_REQUEST, ex.getMessage(), request);
-    }
-
     @ExceptionHandler(NotFoundException.class)
     public ResponseEntity<ApiErrorDTO> handleNotFound(NotFoundException ex,
                                                       HttpServletRequest request) {
         return buildError(HttpStatus.NOT_FOUND, ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(DomainException.class)
+    public ResponseEntity<ApiErrorDTO> handleDomain(DomainException ex,
+                                                    HttpServletRequest request) {
+        return buildError(HttpStatus.BAD_REQUEST, ex.getMessage(), request);
     }
 
     @ExceptionHandler(Exception.class)
