@@ -10,6 +10,8 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.time.LocalDateTime;
+
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -52,7 +54,8 @@ public class GlobalExceptionHandler {
                 status.value(),
                 status.getReasonPhrase(),
                 message,
-                request.getRequestURI()
+                request.getRequestURI(),
+                LocalDateTime.now()
         );
         return ResponseEntity.status(status).body(error);
     }
