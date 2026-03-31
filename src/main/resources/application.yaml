@@ -1,0 +1,26 @@
+spring:
+  application:
+    name: taskmanagerv2
+
+    datasource:
+      url: jdcb:h2:mem:taskmanagerdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+      driver-class-name: org.h2.Driver
+      username: sa
+      passowrd:
+
+      h2:
+        console:
+        enabled: true
+        path: /h2-console
+
+      jpa:
+        show-sql: true
+        open-in-view: false
+        hibernate:
+          dll-auto: none
+        server:
+          port: 8080
+
+        flyway:
+          enabled: true
+          locations: classpath:db/migration
