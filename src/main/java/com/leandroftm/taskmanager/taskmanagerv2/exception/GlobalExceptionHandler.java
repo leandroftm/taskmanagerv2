@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -18,14 +20,14 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiErrorDTO> handleValidation(MethodArgumentNotValidException ex,
                                                         HttpServletRequest request) {
-        String message = ex.getBindingResult()
+
+        List<String> errors = ex.getBindingResult()
                 .getFieldErrors()
                 .stream()
-                .map(error -> error.getField() + error.getDefaultMessage())
-                .findFirst()
-                .orElse("Validation error");
+                .map(error -> error.getField() + " " + error.getDefaultMessage())
+                .collect(Collectors.toList());
 
-        return buildError(HttpStatus.BAD_REQUEST, message, request);
+        return buildError(HttpStatus.BAD_REQUEST, errors, request);
     }
 
     @ExceptionHandler(NotFoundException.class)
@@ -53,7 +55,20 @@ public class GlobalExceptionHandler {
         ApiErrorDTO error = new ApiErrorDTO(
                 status.value(),
                 status.getReasonPhrase(),
-                message,
+                List.of(message),
+                request.getRequestURI(),
+                LocalDateTime.now()
+        );
+        return ResponseEntity.status(status).body(error);
+    }
+
+    private ResponseEntity<ApiErrorDTO> buildError(HttpStatus status,
+                                                   List<String> messages,
+                                                   HttpServletRequest request) {
+        ApiErrorDTO error = new ApiErrorDTO(
+                status.value(),
+                status.getReasonPhrase(),
+                messages,
                 request.getRequestURI(),
                 LocalDateTime.now()
         );
