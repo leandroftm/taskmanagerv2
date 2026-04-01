@@ -1,13 +1,12 @@
 spring:
-    datasource:
-      url: jdcb:h2:mem:testdb-${random.uuid}
-      driver-class-name: org.h2.Driver
-      username: sa
-      passowrd:
+  datasource:
+    url: jdbc:h2:mem:testdb-${random.uuid}
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
 
-      jpa:
-        hibernate:
-          dll-auto: create-drop
-
-        flyway:
-          enabled: false
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+  flyway:
+    enabled: false
