@@ -1,12 +1,10 @@
 package com.leandroftm.taskmanager.taskmanagerv2.controller;
 
-import com.leandroftm.taskmanager.taskmanagerv2.domain.entity.Task;
 import com.leandroftm.taskmanager.taskmanagerv2.dto.CreateTaskRequest;
 import com.leandroftm.taskmanager.taskmanagerv2.dto.TaskResponse;
 import com.leandroftm.taskmanager.taskmanagerv2.dto.UpdateTaskRequest;
 import com.leandroftm.taskmanager.taskmanagerv2.service.TaskService;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
