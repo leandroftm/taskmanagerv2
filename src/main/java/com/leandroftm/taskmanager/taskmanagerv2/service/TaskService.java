@@ -31,7 +31,7 @@ public class TaskService {
             throw new TaskDuplicateTitleException(taskRequest.title());
         }
         if (taskRequest.dueDate().isBefore(LocalDateTime.now())) {
-            throw new TaskDueDateBeforeNowException(taskRequest.dueDate());
+            throw new TaskDueDateBeforeNowException();
         }
         Task task = taskRepository.save(toEntity(taskRequest));
         return new TaskResponse(task);
@@ -49,15 +49,14 @@ public class TaskService {
     }
 
     public void updateTask(Long id, UpdateTaskRequest taskRequest) {
-        Task task = taskRepository.findById(id)
-                .orElseThrow(() -> new TaskNotFoundException(id));
+        Task task = findTaskById(id);
 
         if (task.getTaskStatus() == TaskStatus.DONE) {
             throw new TaskAlreadyDoneException(id);
         }
 
         if (taskRequest.dueDate().isBefore(LocalDateTime.now())) {
-            throw new TaskDueDateBeforeNowException(taskRequest.dueDate());
+            throw new TaskDueDateBeforeNowException();
         }
 
         if (!Objects.equals(task.getTitle(), taskRequest.title())) {
@@ -76,10 +75,13 @@ public class TaskService {
     }
 
     public void deleteTask(Long id) {
-        Task task = taskRepository.findById(id)
-                .orElseThrow(() -> new TaskNotFoundException(id));
-
+        Task task = findTaskById(id);
         taskRepository.delete(task);
+    }
+
+    private Task findTaskById(Long id) {
+        return taskRepository.findById(id)
+                .orElseThrow(() -> new TaskNotFoundException(id));
     }
 
     private Task toEntity(CreateTaskRequest taskRequest) {
