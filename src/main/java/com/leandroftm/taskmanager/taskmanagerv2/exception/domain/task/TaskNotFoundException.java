@@ -5,7 +5,7 @@ import com.leandroftm.taskmanager.taskmanagerv2.exception.domain.NotFoundExcepti
 public class TaskNotFoundException extends NotFoundException {
     public TaskNotFoundException(Long id) {
         super(
-                "Task not found with the id" + id
+                "Task not found with the id " + id
         );
     }
 }
