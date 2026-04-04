@@ -5,7 +5,10 @@ import com.leandroftm.taskmanager.taskmanagerv2.domain.enums.TaskPriority;
 import com.leandroftm.taskmanager.taskmanagerv2.domain.enums.TaskStatus;
 import com.leandroftm.taskmanager.taskmanagerv2.dto.CreateTaskRequest;
 import com.leandroftm.taskmanager.taskmanagerv2.dto.TaskResponse;
+import com.leandroftm.taskmanager.taskmanagerv2.dto.UpdateTaskRequest;
+import com.leandroftm.taskmanager.taskmanagerv2.exception.domain.task.TaskAlreadyDoneException;
 import com.leandroftm.taskmanager.taskmanagerv2.exception.domain.task.TaskDuplicateTitleException;
+import com.leandroftm.taskmanager.taskmanagerv2.exception.domain.task.TaskNotFoundException;
 import com.leandroftm.taskmanager.taskmanagerv2.service.TaskService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +25,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -29,8 +33,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
@@ -87,7 +90,6 @@ public class TaskControllerTest {
                 task.title().equals("Clean room") &&
                         task.taskPriority() == TaskPriority.HIGH
         ));
-        verify(taskService).createTask(any());
     }
 
     @Test
@@ -96,7 +98,7 @@ public class TaskControllerTest {
                 "",
                 "",
                 TaskPriority.HIGH,
-                LocalDateTime.now().plusDays(1)
+                now.plusDays(1)
         );
 
         mockMvc.perform(post("/tasks")
@@ -144,8 +146,8 @@ public class TaskControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(createTaskRequest)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.messages")
-                        .value("The Task title \"Clean bedroom\" already exists"));
+                .andExpect(jsonPath("$.messages[0]")
+                        .value("The Task title Clean bedroom already exists"));
 
     }
 
@@ -189,33 +191,187 @@ public class TaskControllerTest {
                 .andExpect(jsonPath("$.content[1].title").value("Clean bathroom"));
     }
 
-    /*TODO
+    @Test
+    void shouldReturn200WhenTasksListIsEmpty() throws Exception {
+        when(taskService.getAllTasks(any(Pageable.class)))
+                .thenReturn(
+                        new PageImpl<>(new ArrayList<>())
+                );
+        mockMvc.perform(get("/tasks"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()").value(0));
+    }
 
+    @Test
+    void shouldReturn200WhenTaskIsFoundById() throws Exception {
+        when(taskService.getById(1L)).thenReturn(
+                new TaskResponse(
+                        1L,
+                        "Clean kitchen",
+                        "Clean kitchen day",
+                        TaskStatus.TODO,
+                        TaskPriority.LOW,
+                        now,
+                        now,
+                        now.plusDays(10)
+                )
+        );
+        mockMvc.perform(get("/tasks/1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1L))
+                .andExpect(jsonPath("$.title").value("Clean kitchen"));
+    }
 
+    @Test
+    void shouldReturn404WhenTaskIsNotFound() throws Exception {
+        when(taskService.getById(1L)).thenThrow(
+                new TaskNotFoundException(1L)
+        );
 
-
-    //get empty list return 200
-
-    //get by id return 200 -> /tasks/1
-
-    //get task not found return 404
-    //when(taskService.getById(IL)).thenThrow(new TaskNotFoundException(1L));
+        mockMvc.perform(get("/tasks/1"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.messages[0]")
+                        .value("Task not found with the id " + 1L));
+    }
 
     //UPDATE
-    //update success 204
+    @Test
+    void shouldReturn204WhenTaskUpdateSuccess() throws Exception {
+        UpdateTaskRequest taskRequest = new UpdateTaskRequest(
+                "Gym",
+                "",
+                TaskPriority.HIGH,
+                TaskStatus.TODO,
+                now.plusDays(1)
+        );
 
-    //update task not found 404
+        doNothing()
+                .when(taskService).updateTask(eq(1L), any(UpdateTaskRequest.class));
 
-    //update task already done 400
+        mockMvc.perform(put("/tasks/1")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(taskRequest)))
+                .andExpect(status().isNoContent());
 
-    //update invalid due date 400
+        verify(taskService).updateTask(eq(1L), argThat(task ->
+                task.title().equals("Gym") &&
+                        task.taskPriority() == TaskPriority.HIGH
+        ));
+    }
 
-    //update invalid title 400
+    @Test
+    void shouldReturn404WhenUpdateTaskIsNotFound() throws Exception {
+        UpdateTaskRequest taskRequest = new UpdateTaskRequest(
+                "Trendmil",
+                "",
+                TaskPriority.HIGH,
+                TaskStatus.TODO,
+                now.plusDays(2)
+        );
+        doThrow(new TaskNotFoundException(1L))
+                .when(taskService).updateTask(eq(1L), any(UpdateTaskRequest.class));
+        mockMvc.perform(put("/tasks/1")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(taskRequest)))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.messages[0]")
+                        .value("Task not found with the id " + 1L));
+        verify(taskService).updateTask(eq(1L), any(UpdateTaskRequest.class));
+    }
+
+    @Test
+    void shouldReturn400WhenTaskIsAlreadyDone() throws Exception {
+        UpdateTaskRequest taskRequest = new UpdateTaskRequest(
+                "Fix Table",
+                "",
+                TaskPriority.LOW,
+                TaskStatus.DONE,
+                now.plusDays(20)
+        );
+
+        doThrow(new TaskAlreadyDoneException(1L))
+                .when(taskService)
+                .updateTask(eq(1L), any(UpdateTaskRequest.class));
+
+
+        mockMvc.perform(put("/tasks/1")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(taskRequest)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.messages[0]")
+                        .value("Task with id " + 1L + " is already done"));
+        verify(taskService).updateTask(eq(1L), any(UpdateTaskRequest.class));
+    }
+
+    @Test
+    void shouldReturn400WhenDueDateIsInvalid() throws Exception {
+        UpdateTaskRequest taskRequest = new UpdateTaskRequest(
+                "Clean garage",
+                "",
+                TaskPriority.LOW,
+                TaskStatus.TODO,
+                now.minusDays(5)
+        );
+
+        mockMvc.perform(put("/tasks/1")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(taskRequest)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.messages[0]")
+                        .value("dueDate must be a future date"));
+        verifyNoInteractions(taskService);
+    }
+
+    @Test
+    void shouldReturn400WhenTitleIsInvalid() throws Exception {
+        UpdateTaskRequest taskRequest = new UpdateTaskRequest(
+                "Clean sidewalk",
+                "",
+                TaskPriority.LOW,
+                TaskStatus.TODO,
+                now.plusDays(5)
+        );
+
+        doThrow(new TaskDuplicateTitleException("Clean sidewalk"))
+                .when(taskService).updateTask(eq(1L), any(UpdateTaskRequest.class));
+
+        mockMvc.perform(put("/tasks/1")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(taskRequest)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.messages[0]")
+                        .value("The Task title Clean sidewalk already exists"));
+
+        verify(taskService).updateTask(eq(1L), any(UpdateTaskRequest.class));
+    }
 
     //DELETE
-    //delete success 204
+    @Test
+    void shouldReturn204WhenDeleteTaskSuccess() throws Exception {
+        doNothing()
+                .when(taskService).deleteTask(eq(1L));
 
-    //delete task not found 404
-     */
+        mockMvc.perform(delete("/tasks/1")
+                        .with(csrf()))
+                .andExpect(status().isNoContent());
+        verify(taskService).deleteTask(eq(1L));
+    }
 
+    @Test
+    void shouldReturn404WhenDeleteTaskNotFound() throws Exception {
+        doThrow(new TaskNotFoundException(1L))
+                .when(taskService).deleteTask(1L);
+
+        mockMvc.perform(delete("/tasks/1")
+                        .with(csrf()))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.messages[0]")
+                        .value("Task not found with the id " + 1L));
+        verify(taskService).deleteTask(1L);
+    }
 }
