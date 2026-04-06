@@ -68,8 +68,8 @@ public class TaskService {
 
         task.update(
                 taskRequest.description(),
-                taskRequest.taskStatus(),
                 taskRequest.taskPriority(),
+                taskRequest.taskStatus(),
                 taskRequest.dueDate()
         );
     }
@@ -88,8 +88,8 @@ public class TaskService {
         return new Task(
                 taskRequest.title(),
                 taskRequest.description(),
-                TaskStatus.TODO,
                 taskRequest.taskPriority(),
+                TaskStatus.TODO,
                 taskRequest.dueDate()
         );
     }

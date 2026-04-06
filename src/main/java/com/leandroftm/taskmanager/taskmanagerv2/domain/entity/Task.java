@@ -21,11 +21,11 @@ public class Task {
     @Column(name = "description", length = 255)
     private String description;
     @Enumerated(EnumType.STRING)
-    @Column(name = "task_status", nullable = false, length = 25)
-    private TaskStatus taskStatus;
-    @Enumerated(EnumType.STRING)
     @Column(name = "task_priority", nullable = false, length = 25)
     private TaskPriority taskPriority;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "task_status", nullable = false, length = 25)
+    private TaskStatus taskStatus;
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
     @Column(name = "updated_at")
@@ -35,13 +35,13 @@ public class Task {
 
     public Task(String title,
                 String description,
-                TaskStatus taskStatus,
                 TaskPriority taskPriority,
+                TaskStatus taskStatus,
                 LocalDateTime dueDate) {
         this.title = title;
         this.description = description;
-        this.taskStatus = taskStatus;
         this.taskPriority = taskPriority;
+        this.taskStatus = taskStatus;
         this.dueDate = dueDate;
     }
 
@@ -56,12 +56,12 @@ public class Task {
         this.updatedAt = LocalDateTime.now();
     }
 
-    public void update(String description, TaskStatus taskStatus, TaskPriority taskPriority, LocalDateTime dueDate) {
+    public void update(String description, TaskPriority taskPriority, TaskStatus taskStatus, LocalDateTime dueDate) {
         if (description != null && !description.isEmpty()) {
             this.description = description;
         }
-        this.taskStatus = taskStatus;
         this.taskPriority = taskPriority;
+        this.taskStatus = taskStatus;
         this.dueDate = dueDate;
     }
 

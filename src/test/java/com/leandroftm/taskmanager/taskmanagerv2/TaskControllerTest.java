@@ -71,8 +71,8 @@ public class TaskControllerTest {
                         1L,
                         "Clean room",
                         "Full clean the entire room",
-                        TaskStatus.TODO,
                         TaskPriority.HIGH,
+                        TaskStatus.TODO,
                         now,
                         now,
                         createTaskRequest.dueDate()
@@ -148,7 +148,6 @@ public class TaskControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.messages[0]")
                         .value("The Task title Clean bedroom already exists"));
-
     }
 
     //GET
@@ -158,8 +157,8 @@ public class TaskControllerTest {
                 1L,
                 "Clean bedroom",
                 "Full clean the entire room",
-                TaskStatus.TODO,
                 TaskPriority.MEDIUM,
+                TaskStatus.TODO,
                 now,
                 now,
                 now.plusDays(7)
@@ -169,8 +168,8 @@ public class TaskControllerTest {
                 2L,
                 "Clean bathroom",
                 "Full clean the entire room",
-                TaskStatus.TODO,
                 TaskPriority.HIGH,
+                TaskStatus.TODO,
                 now,
                 now,
                 now.plusDays(1)
@@ -209,8 +208,8 @@ public class TaskControllerTest {
                         1L,
                         "Clean kitchen",
                         "Clean kitchen day",
-                        TaskStatus.TODO,
                         TaskPriority.LOW,
+                        TaskStatus.TODO,
                         now,
                         now,
                         now.plusDays(10)

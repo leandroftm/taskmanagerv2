@@ -10,8 +10,8 @@ public record TaskResponse(
         Long id,
         String title,
         String description,
-        TaskStatus taskStatus,
         TaskPriority taskPriority,
+        TaskStatus taskStatus,
         LocalDateTime createdAt,
         LocalDateTime updatedAt,
         LocalDateTime dueDate
@@ -20,8 +20,8 @@ public record TaskResponse(
         this(task.getId(),
                 task.getTitle(),
                 task.getDescription(),
-                task.getTaskStatus(),
                 task.getTaskPriority(),
+                task.getTaskStatus(),
                 task.getCreatedAt(),
                 task.getUpdatedAt(),
                 task.getDueDate()
